@@ -1,0 +1,593 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Simulação API</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link href="#" rel="apple-touch-icon">
+    <style>
+        input[type=text], input[type=password], select, button {
+        	padding:5px; border:2px solid #ccc; 
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+        }
+        input[type=text]:focus {
+        	border-color:#333; 
+        }
+
+        input[type=submit], input[type=button], input[type=file] {
+        	padding:5px 15px; background:#ccc; border:0 none;
+            cursor:pointer;
+            -webkit-border-radius: 5px;
+            border-radius: 5px; 
+        }
+        
+        .feedback {
+        	background-color: #eeeeee;
+        	border-color: #333;
+        	color: #ff3333;
+        	padding: 3px;
+        	display:none;
+        }
+    </style>
+</head>
+<body style="font-family:Verdana;font-size:12pt">
+    <h1>API Centric - Portobello Casas - Ambiente de Testes</h1>
+    <div style="float:left;width:50%">
+        <h3>Novo cadastro</h3>
+        <form action="#" id="form_new_user" name="form_new_user" method="post" enctype="multipart/form-data">
+            Nome: <input type="text" name="name" id="new_name"><br/>
+            Email: <input type="text" name="email" id="new_email"><br/>
+            Senha: <input type="password" name="password" id="new_pass"><br/>
+            Estado: <select name="state" id="new_state" class="state_list" onChange="restfullGet(sAPIUrl+'/resources/getallcities/'+this.options[this.selectedIndex].text,populaListaCidadesNovoCadastro)"></select><br/>
+            Cidade: <select name="city" id="new_city"></select><br/>
+            
+            Telefone: <input type="text" name="phone" id="new_phone"><br/>
+            Website: <input type="text" name="website" id="new_website"><br/>
+            Imagem profile: <input type="file" name="profile_image" id="new_profile_image"><br/>
+            <input type="button" value="Criar" onClick="restfullPostBinary(sAPIUrl+'/user/create',new FormData(document.forms.namedItem('form_new_user')),retornoCriarUsuario)">
+        </form>
+        <div id="return_create_user" class="feedback"></div>
+    </div>
+    <div style="float:left;width:50%;min-height:350px">
+        <h3>Login</h3>
+        <form action="#" method="post" id="form_login" name="form_login">
+            Email: <input type="text" name="email" id="email"><br/>
+            Senha: <input type="password" name="password" id="pass"><br/>
+            <input type="button" value="Entrar" onClick="validaLogin()">
+        </form>
+        <div id="return_login_user" class="feedback"></div>
+    </div>
+    
+    
+    <hr>
+    
+    
+    
+    <div>
+        <h3>Dados dos produtos</h3>
+        Linhas: <select name="lines" id="lines" onChange="restfullGet(sAPIUrl+'/product/getallbyline/'+this.options[this.selectedIndex].value,populaListaProdutos)"></select><br/>
+        Produtos da Linha: <select name="products" id="products"></select><br/>
+        <br/>
+        <hr>
+        <h3>Pós login realizado</h3>
+        ID Usuário logado: <input type="text" name="logged_user_id" id="logged_user_id" value="1" onChange="if (parseInt(this.value)>0) { $('#pos-login-content').show(); } else { $('#pos-login-content').hide(); }"> (este campo simula a variável de sessão)<br/>
+        <br/>
+        <div style="padding:10px;background:#dedede;display:" id="pos-login-content">
+            <h4>Ações que podem ser realizadas pelo usuário logado</h4>
+            <br/>
+            <table border="0" cellpadding="5">
+            <tr style="background-color:#eeeeee">
+                <td valign="top">
+                    <button style="width:200px" onClick="restfullGet(sAPIUrl+'/photo/getall',mostraListaFotos)"><b>Mostrar todas as fotos existentes</b></button><br/>
+                </td>
+                <td width="100%">
+                    <div id="return_photo_list"></div>
+                </td>
+            </tr>
+            
+            
+            <tr>
+                <td valign="top">
+                    <button style="width:200px" onClick="restfullGet(sAPIUrl+'/user/getone/'+$('#logged_user_id').val(),mostraDadosProfile)"><b>Captura dados do profile</b></button><br/>
+                </td>
+                <td width="100%">
+                    <div id="return_user_profile"></div>
+                </td>
+            </tr>
+            
+            <tr style="background-color:#eeeeee">
+                <td valign="top">
+                    <h4>Publicar foto</h4>
+                </td>
+                <td width="100%">
+                    <form action="#" method="post" enctype="multipart/form-data" id="form_new_photo" name="form_new_photo">
+                        <input type="hidden" name="user_id" id="photo_user_id" value="">
+                        Arquivo: <input type="file" name="photo_file"><br/>
+                        Ambiente 1: <select name="environment[]" class="environment_list"></select><br/>
+                        Ambiente 2: <select name="environment[]" class="environment_list"></select><br/>
+                        Ambiente 3: <select name="environment[]" class="environment_list"></select><br/>
+                        Outros Autores: <input type="text" name="other_authors" id="photo_other_authors"><br/>
+                        <input type="button" value="Subir foto" onClick="$('#return_photo_upload').html(''); $('#return_photo_upload').hide(); $('#photo_user_id').val($('#logged_user_id').val());restfullPostBinary(sAPIUrl+'/photo/upload',new FormData(document.forms.namedItem('form_new_photo')),retornoUploadFoto,15000)"><br/>
+                    </form>
+                    <div id="return_photo_upload" class="feedback"></div>
+                </td>
+            </tr>
+            
+            </table>
+            
+            <br/>
+            <div id="saida"></div>
+        </div>
+    </div>
+    <script src="<?php echo $this->basePath()?>/app/_assets/_script/lib/jquery.min.js"></script>
+    <script type="text/javascript" src="<?php echo $this->basePath()?>/app/_assets/_script/lib/serialize-0.2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Única variável que deve ser configurada
+        	sAPIUrl = 'http://casas.portobello.localhost';
+        	sAPIUrl = 'http://casas.andrepiacentini.com.br';
+        	sAPIUrl = window.location.origin;
+        	//alert(sAPIUrl);
+
+     	    // ::::: AUTOLOAD :::::::
+		    // Carrega a lista de estados do form de cadastro
+		    restfullGet(sAPIUrl+'/resources/getallstates', populaListaEstadosNovoCadastro);
+		    // Linhas
+		    restfullGet(sAPIUrl+'/product/getalllines', populaListaLinhasProdutos);
+			 // Ambientes
+		    restfullGet(sAPIUrl+'/resources/getallenvironments', populaListaAmbientesUploadFoto);
+        });
+        
+        
+        function validaLogin() {
+            var email = $('#email').val();
+            var pass = $('#pass').val();
+            if ((email!='') && (pass!='')) {
+            	restfullPost(sAPIUrl+'/user/login',new FormData(document.forms.namedItem('form_login')),retornoLoginUsuario);
+            }
+            else {
+                alert('Informe o usuário e senha');
+            }
+        }
+
+
+        /*
+        Saídas de listas (combos)
+        */
+        
+        function populaListaEstadosNovoCadastro(jsonEstados) {
+            if (jsonEstados.status==200) {
+            	sHTML = '<option value="">Escolha---></option>';
+                for (i=0;i<jsonEstados.estados.length;i++){
+                    sHTML = sHTML + '<option value='+jsonEstados.estados[i].id+'>'+jsonEstados.estados[i].state+'</option>\n';
+                }
+                $('.state_list').html(sHTML);
+            }
+        }
+        
+
+
+        
+        function populaListaCidadesNovoCadastro(jsonCidades) {
+            if (jsonCidades.status==200) {
+            	sHTML = '';
+                for (i=0;i<jsonCidades.cidades.length;i++){
+                    sHTML = sHTML + '<option value='+jsonCidades.cidades[i].id+'>'+jsonCidades.cidades[i].city+'</option>\n';
+                }
+                $('#new_city').html(sHTML);
+            }
+        }
+
+
+        
+        function populaListaCidadesUpdateCadastro(jsonCidades) {
+            if (jsonCidades.status==200) {
+            	sHTML = '';
+                for (i=0;i<jsonCidades.cidades.length;i++){
+                    sHTML = sHTML + '<option value='+jsonCidades.cidades[i].id+'>'+jsonCidades.cidades[i].city+'</option>\n';
+                }
+                $('#update_city').html(sHTML);
+            }
+        }
+        
+        
+        
+        function populaListaAmbientesUploadFoto(json) {
+            if (json.status==200) {
+            	sHTML = '<option value="">Escolha---></option>';
+                for (i=0;i<json.ambientes.length;i++){
+                    sHTML = sHTML + '<option value='+json.ambientes[i].id+'>'+json.ambientes[i].name+'</option>\n';
+                }
+                $('.environment_list').html(sHTML);
+            }
+        }
+        
+
+
+        
+        
+        function populaListaLinhasProdutos(jsonLinhas) {
+            if (jsonLinhas.status==200) {
+            	sHTML = '<option value="">Escolha----></option>';
+                for (i=0;i<jsonLinhas.linhas.length;i++){
+                    sHTML = sHTML + '<option value='+jsonLinhas.linhas[i].line_name+'>'+jsonLinhas.linhas[i].line_name+'</option>\n';
+                }
+                $('#lines').html(sHTML);
+            }
+        }
+
+
+
+        
+        
+        function populaListaProdutos(json) {
+            if (json.status==200) {
+            	sHTML = '<option value="">Escolha----></option>';
+                for (i=0;i<json.produtos.length;i++){
+                    sHTML = sHTML + '<option value='+json.produtos[i].id+'>'+json.produtos[i].product_name+'</option>\n';
+                }
+                $('#products').html(sHTML);
+            }
+        }
+
+
+        /*
+        Feedbacks de posts
+        */
+        
+        function retornoCriarUsuario(json) {
+            if (json.status==200) {
+            	$('#return_create_user').html('Usuário criado com sucesso!');
+            	$('#return_create_user').show();
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_create_user').html('Problemas ao criar usuário: '+sErrorMessage);
+            	$('#return_create_user').show();
+            }
+        }
+
+
+        
+        function retornoUpdateUsuario(json) {
+            if (json.status==200) {
+            	$('#return_update_user').html('Usuário atualizado com sucesso!');
+            	$('#return_update_user').show();
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_update_user').html('Problemas ao atualizar usuário: '+sErrorMessage);
+            	$('#return_update_user').show();
+            }
+        }
+        
+        
+        function retornoLoginUsuario(json) {
+            if (json.status==200) {
+                iUserIdLogged = json.user_id;
+            	$('#return_login_user').html('Usuário '+iUserIdLogged+' logado com sucesso!');
+            	$('#return_login_user').show();
+            	$('#logged_user_id').val(iUserIdLogged);
+            	$('#pos-login-content').show();
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_login_user').html('Problemas no login: '+sErrorMessage);
+            	$('#return_login_user').show();
+            }
+        }
+
+
+
+
+        function mostraListaFotos(json) {
+            if (json.status==200) {
+            	sHTML = '<div id="return_photo_delete" class="feedback"></div><table border="1" cellpadding="4">';
+            	for (i=0;i<json.photos.length;i++) {
+                	oFormDataTemp = { user_id: json.photos[i].user_id, photo_id: json.photos[i].id };
+                	//oFormDataTemp.append('photo_id',json.photos[i].id);
+//                	console.log(oFormDataTemp.toString());
+                	sURLDel = sAPIUrl+'/photo/remove';
+            		sHTML = sHTML + '<tr id="linha'+i+'"><td valign="top">User ID: '+json.photos[i].user_id+'<br/>Outros Autores: '+json.photos[i].other_authors+'<br/>Data de Registro: '+json.photos[i].dt_created+'<br/><form action="#" method="post" id="form_temp_'+i+'" name="form_temp_'+i+'"><input type="hidden" name="user_id" value="'+json.photos[i].user_id+'"><input type="hidden" name="photo_id" value="'+json.photos[i].id+'"></form><input type="button" value="Excluir" onClick="restfullPost(\''+sURLDel+'\',new FormData(document.forms.namedItem(\'form_temp_'+i+'\')),retornoExcluiFoto);$(\'#linha'+i+'\').remove()"></td><td>Raw:<br/><img src="/users_files/'+json.photos[i].user_id+'/photos/'+json.photos[i].filename+'"></td></tr>';
+            	}
+                sHTML = sHTML + '</table>';
+            	$('#return_photo_list').html(sHTML);
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_photo_list').html('Problemas ao capturar dados: '+sErrorMessage);
+            }
+        }
+        
+
+        
+        function mostraDadosProfile(json) {
+            if (json.status==200) {
+            	sHTML = '<img src="users_files/'+json.user.profile.id+'/'+json.user.profile.profile_picture+'" align="left" hspace="2" vspace="2">';
+            	sHTML = sHTML + '<form action="#" id="form_update_user" name="form_new_user" method="post" enctype="multipart/form-data">';
+            	sHTML = sHTML + '<input type="hidden" name="user_id" value="'+json.user.profile.id+'">';
+                sHTML = sHTML + 'Nome: <input type="text" name="name" value="'+json.user.profile.name+'" style="width:400px"><br/>';
+                sHTML = sHTML + 'Email: <input type="text" name="email" value="' +json.user.profile.email+'" style="width:400px"><br/>';
+                sHTML = sHTML + 'HASH Senha: ' +json.user.profile.password+'<br/>';
+                sHTML = sHTML + 'Nova senha: <input type="password" name="password"><br/>';
+                sHTML = sHTML + 'Estado: ' +json.user.profile.state+'<br/>';
+                sHTML = sHTML + 'Cidade: ' +json.user.profile.city_name+' (id: '+json.user.profile.city_id+')<br/>';
+                sHTML = sHTML + 'Novo Estado: <select name="state" id="update_state" class="state_list" onChange="restfullGet(\''+sAPIUrl+'/resources/getallcities/\'+this.options[this.selectedIndex].text,populaListaCidadesUpdateCadastro)"></select><br/>';
+                sHTML = sHTML + 'Nova Cidade: <select name="city" id="update_city"></select><br/>';
+                sHTML = sHTML + 'Telefone: <input type="text" name="phone" value="'+json.user.profile.phone+'" style="width:400px"><br/>';
+                sHTML = sHTML + 'Website: <input type="text" name="website" value="'+json.user.profile.website+'" style="width:400px"><br/>';
+                sHTML = sHTML + 'Data Registro: ' +json.user.profile.dt_created+'<br/>';
+                sHTML = sHTML + 'Data Update: ' +json.user.profile.dt_updated+'<br/>';
+                sHTML = sHTML + 'Nova Imagem profile: <input type="file" name="profile_image" id="new_profile_image"><br/>';
+                sHTML = sHTML + '<input type="button" value="Atualizar" onClick="restfullPostBinary(\''+sAPIUrl+'/user/update\',new FormData(document.forms.namedItem(\'form_update_user\')),retornoUpdateUsuario)">';
+                sHTML = sHTML + '</form><div id="return_update_user" class="feedback"></div>';
+                if (json.user.photos.length>0) {
+                	sHTML = sHTML + '<hr>';
+                	for (i=0;i<json.user.photos.length;i++) {
+                    	sAmbientes = '';
+                    	if (json.user.photos[i].environments.length>0) {
+                        	sAmbientes = 'Ambientes:<br/>';
+                        	for (j=0;j<json.user.photos[i].environments.length;j++) {
+                     		   sAmbientes = sAmbientes + '- '+json.user.photos[i].environments[j].name+'<br/>';
+                        	}
+                    	}
+                    	sHTML = sHTML + '<div style="float:left;margin:3px 3px 3px 3px;min-height:200px;font-size:9pt">ID:'+json.user.photos[i].id+'<br/>Outros: '+json.user.photos[i].other_authors+'<br/><img src="/users_files/'+json.user.profile.id+'/photos/'+json.user.photos[i].filename+'" width="150"><br/>'+sAmbientes+'</div>';
+                	}
+                }
+                else {
+                	sHTML = sHTML + '<hr>Este usuário ainda não publicou nenhuma foto<br/>';
+                }
+            	$('#return_user_profile').html(sHTML);
+            	restfullGet(sAPIUrl+'/resources/getallstates', populaListaEstadosNovoCadastro);
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_user_profile').html('Problemas ao capturar dados: '+sErrorMessage);
+            }
+        }
+
+
+
+
+        
+        function retornoUploadFoto(json) {
+            if (json.status==200) {
+            	$('#return_photo_upload').html('Foto atualizada com sucesso! [ID: '+json.photo.id+']');
+            	$('#return_photo_upload').show();
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_photo_upload').html('Problemas ao criar usuário: '+sErrorMessage);
+            	$('#return_photo_upload').show();
+            }
+        }
+
+
+
+        function retornoExcluiFoto(json) {
+        	if (json.status==200) {
+            	$('#return_photo_delete').html('Foto removida com sucesso! [ID: '+json.photo.id+']');
+            	$('#return_photo_delete').show();
+            }
+            else {
+            	sErrorMessage = json.message;
+                if (json.errors) {
+                	sErrorMessage = sErrorMessage + '\n\n';
+                    for (i=0;i<json.errors.length;i++) {
+                        sErrorMessage = sErrorMessage + json.errors[i].message + '\n';
+                    }
+                }
+            	$('#return_photo_delete').html('Problemas ao excluir a foto: '+sErrorMessage);
+            	$('#return_photo_delete').show();
+            }
+        }
+        
+        
+        /* Funções CORE ========================================================================================================================================================================================================================================================================================================================================== */
+        
+        function restfullPost(sURL, oFormData, returnResultFunction, iTimeOut) {
+        	if (!iTimeOut) {
+        		iTimeOut = 8000;
+        	}
+        	$.ajax({
+        		    type: 'POST',
+        		    url: sURL,
+                    dataType: 'json',
+        		    processData: false,
+        		    contentType: false,
+        	        data: oFormData,
+        	        cache: false,
+        		    timeout: iTimeOut,
+        		    success: function(json) {
+            		    switch (json.status) {
+        		        case 200:   // Sucesso
+      		        	            json = json;
+        		                    break;
+        		        case 406:   var json = {
+	                    		          status: '406',
+        		                    	  message: json.message,
+        		                    };
+	                                break;
+	                    case 409:   var json = {
+       		                    		  status: '409',
+         		                    	  message: json.message,
+         		                    	  errors: json.errors, 
+         		                    };
+	                                break;
+		                 default:   var json = {
+		                		              status: '500',
+		                		          message: 'Internal server error: '+json.message,
+		                		    };
+    				  }
+    				  returnResultFunction(json);
+        		  },
+        		  error: function (jqXHR, textStatus, errorThrown) {
+        		  	switch (textStatus) {
+        			  	case 'timeout'	:	var json = {
+        										  status: '408',
+        										  message: 'Request timeout',
+        								    };
+        			  						returnResultFunction(json);
+        			  	default         : 	var json = {
+        										  status: '500',
+        										  message: 'Internal server error: '+errorThrown,
+        								    };
+        			  						returnResultFunction(json);
+        		  	}
+        	  	  }
+        		});
+        }
+
+
+
+
+
+        function restfullPostBinary(sURL, oFormData, returnResultFunction, iTimeOut) {
+        	if (!iTimeOut) {
+        		iTimeOut = 8000;
+        	}
+        	$.ajax({
+        		    type: 'POST',
+        		    url: sURL,
+        		    contentType: 'multipart/form-data',
+                    beforeSend: function (x) {
+                        if (x && x.overrideMimeType) {
+                            x.overrideMimeType("multipart/form-data");
+                        }
+                    },
+                    mimeType: 'multipart/form-data',
+        		    processData: false,
+        		    contentType: false,
+        		    dataType: 'json',
+        	        data: oFormData,
+        	        cache: false,
+        		    timeout: iTimeOut,
+        		    success: function(json) {
+            		    switch (json.status) {
+            		        case 200:   // Sucesso
+          		        	            json = json;
+            		                    break;
+            		        case 406:   var json = {
+		                    		          status: '406',
+            		                    	  message: json.message,
+            		                    };
+		                                break;
+		                    case 409:   var json = {
+           		                    		  status: '409',
+             		                    	  message: json.message,
+             		                    	  errors: json.errors, 
+             		                    };
+		                                break;
+    		                 default:   var json = {
+  		                		              status: '500',
+    		                		          message: 'Internal server error: '+json.message,
+    		                		    };
+        				  }
+        				  returnResultFunction(json);
+        		  },
+        		  error: function (jqXHR, textStatus, errorThrown) {
+        		  	switch (textStatus) {
+        			  	case 'timeout'	:	var json = {
+        										  status: '408',
+        										  message: 'Request timeout',
+        								    };
+        			  						returnResultFunction(json);
+        			  						break;
+        			  	default         : 	var json = {
+        										  status: '500',
+        										  message: 'Internal server error: '+errorThrown,
+        								    };
+        			  						returnResultFunction(json);
+        		  	}
+        	  	  }
+        		});
+        }
+
+
+
+
+
+        function restfullGet(sURL, returnResultFunction, iTimeOut) {
+        	if (!iTimeOut) {
+        		iTimeOut = 8000;
+        	}
+        	$.ajax({
+        		  type: 'GET',
+        		  url: sURL,
+                    //contentType: 'application/json',
+                    dataType: 'json',
+        		  //dataType: 'json',
+//        		  processData: false,
+//        		  contentType: false,
+        	      cache: false,
+        		  timeout: iTimeOut,
+        		  success: function(json) {
+        			  if (json.status=='200') {
+        				  returnResultFunction(json);
+        			  }
+        			  else {
+        				  var json = {
+        						  status: '500',
+        						  message: 'Internal server error: '+json.message,
+        				  };
+        				  returnResultFunction(json);
+        			  }
+        		  },
+        		  error: function (jqXHR, textStatus, errorThrown) {
+        		  	switch (textStatus) {
+        			  	case 'timeout'	:	var json = {
+        										  status: '408',
+        										  message: 'Request timeout',
+        								    };
+        			  						returnResultFunction(json);
+        			  	default         : 	var json = {
+        										  status: '501',
+        										  message: 'Internal server error: '+errorThrown+' - '+textStatus,
+        								    };
+        			  						returnResultFunction(json);
+        		  	}
+        	  	  }
+        		});
+        }
+        
+    </script>   
+</body>
+</html>

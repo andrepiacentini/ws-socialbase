@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html>
+<!--<![endif]-->
+
+<head>
+    <meta charset="utf-8">
+    <title>Casas Portobello - Login com Facebook</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <!--<base href="/">-->
+    <link href="app/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <link rel="icon" type="image/png" href="/app/_assets/img/favicon.ico">
+
+    <!-- typekit font: nimbus-sans -->
+    <script src="//use.typekit.net/dea4joc.js"></script>
+    <script>try{Typekit.load();}catch(e){}</script>
+</head>
+
+<body>
+
+    <!--  lib  -->
+    <script src="app/_assets/_script/lib/jquery.min.js"></script>
+    <script src="app/_assets/_script/lib/jquery.session.js"></script>
+
+
+    <script>
+        
+        $( document ).ready(function() {
+            simpleStorage.set('user_logged_id',<?php echo $sUserId ?>);
+            document.location = '/';
+
+        });
+    </script>
+
+</body>
+
+</html>
