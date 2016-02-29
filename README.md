@@ -2,6 +2,8 @@
 webservice REST simples, para emular um microblog
 
 ##### instruções para instalação:
+* instalar o Composer 
+* rodar no terminal `php composer.phar install`
 * criar uma base de dados MySQL
 * rodar o script em /data/microblog.sql
 * configurar o arquivo config.php para o nome do database e configurar o arquivo local.php para usuário e senha de conexão
