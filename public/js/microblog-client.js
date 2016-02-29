@@ -1,7 +1,7 @@
             function catchJson(json) {
                 $('.loading').hide();
                 if (json.posts) {
-                    if (iLastPostId!=null) {
+                    if (iLastPostId==null) {
                         $('.posts').html('');
                     }
                     for (i=0;i<json.posts.length;i++) {
